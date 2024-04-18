@@ -3,7 +3,8 @@ import Vapor
 
 struct UserController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
-        let users = routes.grouped("users")
+        let usersProtected = routes.grouped(SessionToken.asyncAuthenticator(), SessionToken.guardMiddleware())
+        let users = usersProtected.grouped("users")
         users.get(use: { try await self.index(req: $0) })
         users.post(use: { try await self.create(req: $0) })
         users.get("tags") { try await self.getTags(req: $0) }
@@ -23,8 +24,8 @@ struct UserController: RouteCollection {
 extension UserController {
     // Allows an admin to see all users
     func index(req: Request) async throws -> Page<UserPublic> {
-        let user = try req.auth.require(User.self)
-        guard user.isAdmin() else {
+        let user = try await req.registeredUser()
+        guard try await user.isAdmin(db: req.db) else {
             throw Abort(.unauthorized)
         }
         let allUsers = try await User.query(on: req.db).paginate(for: req)
@@ -56,16 +57,16 @@ extension UserController {
     }
     
     func get(req: Request) async throws -> UserPublic {
-        let user = try await registeredUser(req: req)
+        let user = try await req.registeredUser()
         
         // Looking at myself
-        if user.id == req.parameters.get(":userID") {
+        if user.id == req.parameters.get("userID") {
             return UserPublic(user: user)
         }
         
         // Admin looking for someone
-        if user.isAdmin(),
-           let foundUser = try await User.find(req.parameters.get(":userID"), on: req.db) {
+        if try await user.isAdmin(db: req.db),
+           let foundUser = try await User.find(req.parameters.get("userID"), on: req.db) {
             return UserPublic(user: foundUser)
         }
         
@@ -74,26 +75,28 @@ extension UserController {
     }
     
     func delete(req: Request) async throws -> HTTPResponseStatus {
-        let user = try await registeredUser(req: req)
-        guard let userIDParam = req.parameters.get(":userID"),
+        let user = try await req.registeredUser()
+        guard let userIDParam = req.parameters.get("userID"),
               let uid = UUID(uuidString: userIDParam) else {
             throw Abort(.badRequest)
         }
         
-        if try user.isAdmin() && user.requireID() == uid {
+        if try await user.isAdmin(db: req.db) && user.requireID() == uid {
             throw Abort(.badRequest, reason: "You cannot remove yourself because you are an `Admin`")
         }
         
         // Deleting myself
         if try user.requireID() == uid {
+            try await user.$tags.detachAll(on: req.db)
             try await user.delete(on: req.db)
         }
         
-        guard user.isAdmin() else {
+        guard try await user.isAdmin(db: req.db) else {
             throw Abort(.unauthorized)
         }
         
         if let userToDelete = try await User.find(uid, on: req.db) {
+            try await userToDelete.$tags.detachAll(on: req.db)
             try await userToDelete.delete(on: req.db)
             return .ok
         }
@@ -102,19 +105,19 @@ extension UserController {
     }
     
     func update(req: Request) async throws -> UserPublic {
-        let registeredUser = try await registeredUser(req: req)
+        let registeredUser = try await req.registeredUser()
         let publicUser = try req.content.decode(UserPublic.self)
+        // FIXME: This always fails
         guard let uid = publicUser.id,
               try uid == registeredUser.requireID(),
               let updatedUser = User(userPublic: publicUser) else {
             req.logger.warning(.init(stringLiteral: "Not a valid user"))
             throw Abort(.badRequest)
         }
-        guard let savedUser = try await User.find(uid, on: req.db) else {
+        guard let _ = try await User.find(uid, on: req.db) else {
             req.logger.warning(.init(stringLiteral: "User does not exist. user.id: \(publicUser.id?.uuidString ?? "-")"))
             throw Abort(.badRequest)
         }
-        
         try await updatedUser.save(on: req.db)
         return UserPublic(user: updatedUser)
     }
@@ -124,30 +127,33 @@ extension UserController {
 extension UserController {
     /// Gets the current user’s tags
     func getTags(req: Request) async throws -> [Tag] {
-        let user = try await registeredUser(req: req)
-        return user.tags
+        let user = try await req.registeredUser()
+        if user.$tags.value != nil {
+            return user.tags
+        }
+        return try await user.$tags.get(on: req.db)
     }
     
     /// Gated by admin access
     func adminGetTagsForUser(req: Request) async throws -> [Tag] {
-        guard let uidParam = req.parameters.get(":userID"),
+        guard let uidParam = req.parameters.get("userID"),
               let userIDtoQuery = UUID(uuidString: uidParam) else {
             throw Abort(.badRequest)
         }
-        let user = try await registeredUser(req: req)
-        guard user.isAdmin() else {
+        let user = try await req.registeredUser()
+        guard try await user.isAdmin(db: req.db) else {
             req.logger.warning("Unauthorized access attempt")
             throw Abort(.unauthorized)
         }
         guard let userToQuery = try await User.find(userIDtoQuery, on: req.db) else {
             throw Abort(.notFound, reason: "User not found")
         }
-        return userToQuery.tags
+        return try await userToQuery.$tags.get(on: req.db)
     }
     
     func addTag(req: Request) async throws -> HTTPResponseStatus {
-        async let user = registeredUser(req: req)
-        guard let tagID = req.parameters.get(":tagID"),
+        async let user = req.registeredUser()
+        guard let tagID = req.parameters.get("tagID"),
               let tagUUID = UUID(uuidString: tagID) else {
             throw Abort(.badRequest)
         }
@@ -159,15 +165,22 @@ extension UserController {
             req.logger.warning("Unregistered access attempt")
             throw Abort(.unauthorized)
         }
+        
+        // Do not attach the same tag multiple times
+        let savedTagID = try tag.requireID()
+        let alreadyMatchedTags = try await user.$tags.query(on: req.db).filter(\Tag.$id, .equal, savedTagID).count()
+        guard alreadyMatchedTags == 0 else {
+            return .ok // Already has tag
+        }
         try await user.$tags.attach(tag, on: req.db)
         return .ok
     }
     
     func adminAddTagOnUser(req: Request) async throws -> HTTPResponseStatus {
-        async let admin = adminUser(req: req)
-        guard let userID = req.parameters.get(":userID"),
+        async let admin = req.adminUser()
+        guard let userID = req.parameters.get("userID"),
               let uid = UUID(uuidString: userID),
-              let tagID = req.parameters.get(":tagID"),
+              let tagID = req.parameters.get("tagID"),
               let tid = UUID(uuidString: tagID) else {
             throw Abort(.badRequest)
         }
@@ -178,32 +191,14 @@ extension UserController {
                 let _ = try await admin else {
             throw Abort(.failedDependency)
         }
+        let savedTagID = try tag.requireID()
+        let alreadyMatchedTags = try await user.$tags.query(on: req.db).filter(\Tag.$id, .equal, savedTagID).count()
+        guard alreadyMatchedTags == 0 else {
+            return .ok // Already has tag
+        }
         try await user.$tags.attach(tag, on: req.db)
         
         // TODO: Log changes
         return .ok
-    }
-}
-
-
-// MARK: - Helpers
-extension UserController {
-    private func registeredUser(req: Request) async throws -> User {
-        let user = try req.auth.require(User.self)
-        let uid = try user.requireID()
-        guard let foundUser = try await User.find(uid, on: req.db) else {
-            req.logger.warning("Unregistered access attempt")
-            throw Abort(.badRequest)
-        }
-        return foundUser
-    }
-    
-    @discardableResult
-    private func adminUser(req: Request) async throws -> User? {
-        let user = try await registeredUser(req: req)
-        guard user.isAdmin() else {
-            throw Abort(.unauthorized)
-        }
-        return user
     }
 }

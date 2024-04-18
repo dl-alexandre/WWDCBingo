@@ -1,11 +1,11 @@
 import Fluent
 import Vapor
 
-final class Tag: Model, Content {
-    static let schema = "tags"
+public  final class Tag: Model, Content {
+    public static let schema = "tags"
     
     @ID(key: .id)
-    var id: UUID?
+    public var id: UUID?
     
     @Field(key: "name")
     var name: String
@@ -13,7 +13,7 @@ final class Tag: Model, Content {
     @Siblings(through: UserTag.self, from: \.$tag, to: \.$user)
     public var users: [User]
     
-    init() { /* no op */ }
+    public init() { /* no op */ }
     
     init(id: UUID? = nil, name: String) {
         self.id = id

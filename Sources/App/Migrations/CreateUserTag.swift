@@ -6,6 +6,7 @@ struct CreateUserTag: AsyncMigration {
             .id()
             .field("user_id", .uuid, .required, .references(User.schema, "id"))
             .field("tag_id", .uuid, .required, .references(Tag.schema, "id"))
+            .unique(on: "id")
             .create()
     }
 

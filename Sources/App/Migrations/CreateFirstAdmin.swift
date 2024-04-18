@@ -16,7 +16,7 @@ struct CreateFirstAdmin: AsyncMigration {
         try await adminUser.save(on: database)
         try await adminUser.$tags.attach(adminTag, on: database)
         let adminID = try adminUser.requireID()
-        database.logger.critical("Admin created")
+        database.logger.critical("Admin created: \(adminID.uuidString)")
     }
 
     func revert(on database: Database) async throws {

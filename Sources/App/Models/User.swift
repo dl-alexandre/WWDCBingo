@@ -4,11 +4,11 @@ import Vapor
 /// `User` class for server usage.
 /// Do not use `User` over the wire because we don’t want the
 /// `User.password` to leak. Use the ``UserPublic`` type instead.
-final class User: Model, Content {
-    static let schema = "users"
+public final class User: Model, Content {
+    public static let schema = "users"
     
     @ID(key: .id)
-    var id: UUID?
+    public var id: UUID?
     
     @Field(key: "given_name")
     var givenName: String
@@ -25,7 +25,7 @@ final class User: Model, Content {
     @Siblings(through: UserTag.self, from: \.$user, to: \.$tag)
     public var tags: [Tag]
     
-    init() { /* no op */}
+    public init() { /* no op */}
     
     init(id: UUID?, givenName: String, familyName: String, email: String, passwordHash: String) {
         self.id = id
@@ -56,14 +56,42 @@ final class User: Model, Content {
     }
 }
 
-extension User: Authenticatable { }
+// MARK: Auth
+extension User: Authenticatable {
+    func authenticate(email: String, password: String) throws {
+        guard let passData = password.data(using: .utf8),
+              email == self.email,
+              SHA256.hash(data: passData).hexEncodedString() == self.passwordHash else {
+            throw Abort(.unauthorized)
+        }
+    }
+}
+
+extension User: ModelAuthenticatable {
+    public static var usernameKey: KeyPath<User, Field<String>> {
+        \User.$email
+    }
+    
+    public static var passwordHashKey: KeyPath<User, Field<String>> {
+        \User.$passwordHash
+    }
+    
+    public func verify(password: String) throws -> Bool {
+        guard let loginPasswordData = password.data(using: .utf8) else {
+            throw Abort(.internalServerError)
+        }
+        let loginPasswordHash = SHA512.hash(data: loginPasswordData).hexEncodedString()
+        return loginPasswordHash == self.passwordHash
+    }
+}
 
 // MARK: Admin
 extension User {
     // TODO: Update this to be authorative
-    func isAdmin() -> Bool {
-        self.tags.contains { tag in
-            tag.name == "Admin"
-        }
+    func isAdmin(db: Database) async throws -> Bool {
+        let adminTagCount = try await self.$tags.query(on: db)
+            .filter(\.$name == Configuration.adminTagName)
+            .count()
+        return adminTagCount == 1
     }
 }
