@@ -5,7 +5,9 @@ struct CreateTile: AsyncMigration {
         try await database.schema(Tile.schema)
             .id()
             .field("title", .string, .required)
+            .unique(on: "title")
             .field("played", .bool, .required)
+            .field("user_id", .uuid, .required, .references(User.schema, "id"))
             .create()
     }
     

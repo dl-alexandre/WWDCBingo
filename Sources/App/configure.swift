@@ -22,6 +22,7 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateUserTag())
     app.migrations.add(CreateFirstAdmin())
     app.migrations.add(SessionRecord.migration)
+    app.migrations.add(CreateTile())
     
     app.views.use(.leaf)
 
