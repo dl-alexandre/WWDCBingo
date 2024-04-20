@@ -8,6 +8,8 @@ struct TilePublic: Codable {
     var userID: UUID?
 }
 
+extension TilePublic: Hashable { }
+
 extension TilePublic {
     func makeTile(on req: Request) async throws -> Tile {
         let user = try await req.registeredUser()
@@ -37,6 +39,16 @@ final class Tile: Model, Content {
         self.title = title
         self.isPlayed = isPlayed
         self.$user.id = try user.requireID()
+    }
+}
+
+extension Tile: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(title)
+    }
+    
+    static func == (lhs: Tile, rhs: Tile) -> Bool {
+        lhs.title == rhs.title
     }
 }
 
