@@ -1,16 +1,16 @@
+import Foundation
+
 struct BingoGame: Codable {
     enum Errors: Error {
         case invalid(reason: String)
     }
     
-    enum Status: Int, Codable {
-        case ready = 0, playing = 1, winner = 2, error = -1
-    }
-    
+    var id: UUID
     var status: Status
     var tiles: [[Tile]]
     
-    init(tiles: [Tile], size: Int) throws {
+    init(id: UUID? = nil, tiles: [Tile], size: Int) throws {
+        self.id = id ?? UUID()
         let requiredBoardTileCount = size * size
         let terminalIndex = size - 1
         var randoTiles = tiles.shuffled()
@@ -49,6 +49,20 @@ extension BingoGame: CustomStringConvertible {
             gameDescription.append(rowDescription + "\n")
         }
         return gameDescription
+    }
+    
+    func flatTiles() -> [Tile] {
+        tiles.flatMap { $0 }
+    }
+    
+    static func makeBoard(from tiles: [Tile]) -> [[Tile]] {
+        let gameSize = Int(Double(tiles.count).squareRoot())
+        let tiles2D = tiles.chunks(ofCount: gameSize).map { Array($0) }
+        return tiles2D
+    }
+    
+    func gameState(for user: User) throws -> BingoGameState {
+        return try BingoGameState(game: self, user: user)
     }
 }
 

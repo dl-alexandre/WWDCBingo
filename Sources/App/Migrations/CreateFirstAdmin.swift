@@ -2,14 +2,14 @@ import Fluent
 
 struct CreateFirstAdmin: AsyncMigration {
     func prepare(on database: Database) async throws {
-        try await Configuration.adminTag.save(on: database)
+        try await ServerConfig.adminTag.save(on: database)
         guard let adminTag: Tag = try await Tag.query(on: database)
-            .filter(\.$name, .equal, Configuration.adminTagName)
+            .filter(\.$name, .equal, ServerConfig.adminTagName)
             .first() else {
             fatalError("Could not create Admin tag")
         }
         
-        let pubUser = Configuration.adminUserPublic
+        let pubUser = ServerConfig.adminUserPublic
         guard let adminUser = User(userPublic: pubUser) else {
             fatalError("Could not migrate admin")
         }

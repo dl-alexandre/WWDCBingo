@@ -1,9 +1,10 @@
+import Leaf
 import Fluent
 import Vapor
 
 func routes(_ app: Application) throws {
     app.get { req async throws in
-        try await req.view.render("index", ["title": "Hello Vapor!"])
+        try await req.view.render("home", ["title": "WWDC Bingo!"])
     }
 
     app.get("healthcheck") { req async throws -> String in
@@ -16,7 +17,6 @@ func routes(_ app: Application) throws {
     passwordProtected.post("login") { req -> [String: String] in
         let user = try req.auth.require(User.self)
         let payload = try SessionToken(user: user)
-//        let token = try req.application.jwt.signers.sign(payload)
         return try [ "jwt" : req.jwt.sign(payload) ]
     }
     
@@ -29,4 +29,5 @@ func routes(_ app: Application) throws {
     try app.register(collection: TodoController())
     try app.register(collection: UserController())
     try app.register(collection: TileController())
+    try app.register(collection: GameController())
 }

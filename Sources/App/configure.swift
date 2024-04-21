@@ -7,13 +7,13 @@ import Vapor
 
 // configures your application
 public func configure(_ app: Application) async throws {
-    // uncomment to serve files from /Public folder
-    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+    // Also serve files from /Public folder
+    app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
     app.databases.use(DatabaseConfigurationFactory
-        .postgres(configuration: try Configuration.postgresConfiguration()), 
+        .postgres(configuration: try ServerConfig.postgresConfiguration()), 
                       as: .psql)
-    app.jwt.signers.use(.hs512(key: Configuration.jwtSignerKey))
+    app.jwt.signers.use(.hs512(key: ServerConfig.jwtSignerKey))
     app.sessions.use(.fluent)
 
     app.migrations.add(CreateTodo())
@@ -23,6 +23,8 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateFirstAdmin())
     app.migrations.add(SessionRecord.migration)
     app.migrations.add(CreateTile())
+    app.migrations.add(CreateBingoGameState())
+    app.migrations.add(CreateInitialTiles())
     
     app.views.use(.leaf)
 

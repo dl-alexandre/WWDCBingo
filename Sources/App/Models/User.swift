@@ -25,6 +25,9 @@ public final class User: Model, Content {
     @Siblings(through: UserTag.self, from: \.$user, to: \.$tag)
     public var tags: [Tag]
     
+    @Children(for: \.$user)
+    var bingoGames: [BingoGameState]
+    
     public init() { /* no op */}
     
     init(id: UUID?, givenName: String, familyName: String, email: String, passwordHash: String) {
@@ -90,7 +93,7 @@ extension User {
     // TODO: Update this to be authorative
     func isAdmin(db: Database) async throws -> Bool {
         let adminTagCount = try await self.$tags.query(on: db)
-            .filter(\.$name == Configuration.adminTagName)
+            .filter(\.$name == ServerConfig.adminTagName)
             .count()
         return adminTagCount == 1
     }
