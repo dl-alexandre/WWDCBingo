@@ -18,6 +18,8 @@ version: '3.7'
 
 volumes:
   db_data:
+  caddy_data:
+  caddy_config:
 
 x-shared_environment: &shared_environment
   LOG_LEVEL: ${LOG_LEVEL:-debug}
@@ -27,6 +29,20 @@ x-shared_environment: &shared_environment
   DATABASE_PASSWORD: vapor_password
   
 services:
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./Public:/srv
+      - caddy_data:/data
+      - caddy_config:/config
   app:
     image: wwdc-bingo:latest
     build:
