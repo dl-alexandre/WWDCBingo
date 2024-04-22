@@ -48,10 +48,9 @@ public final class User: Model, Content {
     init?(userPublic: UserPublic) {
         guard let email = userPublic.email,
               let pass = userPublic.password,
-              let passData = pass.data(using: .utf8) else {
+              let passHash = try? Self.createPasswordHash(pass) else {
             return
         }
-        let passHash = SHA512.hash(data: passData).hexEncodedString()
         self.givenName = userPublic.givenName
         self.familyName = userPublic.familyName
         self.email = email
@@ -61,6 +60,12 @@ public final class User: Model, Content {
 
 // MARK: Auth
 extension User: Authenticatable {
+    static func createPasswordHash(_ password: String) throws -> String {
+        guard let passData = password.data(using: .utf8) else {
+            throw Abort(.internalServerError, reason: "Could not store password")
+        }
+        return SHA512.hash(data: passData).hexEncodedString()
+    }
     func authenticate(email: String, password: String) throws {
         guard let passData = password.data(using: .utf8),
               email == self.email,

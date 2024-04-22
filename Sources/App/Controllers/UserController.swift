@@ -114,12 +114,19 @@ extension UserController {
             req.logger.warning(.init(stringLiteral: "Not a valid user"))
             throw Abort(.badRequest)
         }
-        guard let _ = try await User.find(uid, on: req.db) else {
+        let savedUser = try await User.find(uid, on: req.db)
+        guard let savedUser else {
             req.logger.warning(.init(stringLiteral: "User does not exist. user.id: \(publicUser.id?.uuidString ?? "-")"))
             throw Abort(.badRequest)
         }
-        try await updatedUser.save(on: req.db)
-        return UserPublic(user: updatedUser)
+        savedUser.email = publicUser.email ?? savedUser.email
+        savedUser.familyName = publicUser.familyName
+        savedUser.givenName = publicUser.givenName
+        if let password = publicUser.password {
+            savedUser.passwordHash = try User.createPasswordHash(password)
+        }
+        try await savedUser.save(on: req.db)
+        return UserPublic(user: savedUser)
     }
 }
 
