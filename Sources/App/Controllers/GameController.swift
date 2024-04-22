@@ -10,6 +10,33 @@ struct GameController: RouteCollection {
         
         games.group(":gameID") { game in
             game.get(use: { try await self.get(req: $0) })
+            let frameSize = 15 * 1024 // 15KiB
+            game.webSocket("play", maxFrameSize: WebSocketMaxFrameSize(integerLiteral: frameSize)) { req, ws in
+                ws.onPing { ws, buffy in
+                    ws.send("ping")
+                }
+                ws.onText { ws, text in
+                    if let uuid = UUID(uuidString: text) {
+                        guard let game = try? await BingoGameState.find(uuid, on: req.db),
+                              let gameDTOData = try? JSONEncoder().encode(game) else {
+                            try? await ws.send("Not found")
+                            return ()
+                        }
+                        ws.send(gameDTOData)
+                    }
+                    try? await ws.send(text.reversed())
+                }
+                ws.onBinary { ws, buffy in
+                    let size = buffy.readableBytes
+                    ws.send("Got \(size) bytes")
+                }
+                ws.onPong { ws, buffy in
+                    ws.send("pong")
+                }
+                ws.onClose.whenComplete { _ in
+                    print("closed")
+                }
+            }
         }
     }
     
