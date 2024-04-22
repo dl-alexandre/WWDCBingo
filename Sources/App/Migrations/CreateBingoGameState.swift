@@ -8,6 +8,7 @@ struct CreateBingoGameState: AsyncMigration {
             .field("status", .int, .required)
             .field("tiles", .array(of: .json))
             .field("user_id", .uuid, .required, .references(User.schema, "id"))
+            .field("permissions", .string, .required)
             .create()
     }
     

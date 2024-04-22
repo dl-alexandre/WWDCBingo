@@ -21,7 +21,8 @@ struct TileController: RouteCollection {
     }
 
     func create(req: Request) async throws -> Tile {
-        let tilePublic = try req.content.decode(TilePublic.self)
+        var tilePublic = try req.content.decode(TilePublic.self)
+        tilePublic.isPlayed = false
         let tile = try await tilePublic.makeTile(on: req)
         try await tile.save(on: req.db)
         return tile
@@ -48,7 +49,9 @@ struct TileController: RouteCollection {
         }
         
         tile.title = updatedTile.title
-        tile.isPlayed = updatedTile.isPlayed
+        if requestUserIsAdmin {
+            tile.isPlayed = updatedTile.isPlayed
+        }
         try await tile.save(on: req.db)
         return tile
     }

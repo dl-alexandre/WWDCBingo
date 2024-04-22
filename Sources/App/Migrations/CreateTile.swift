@@ -8,6 +8,7 @@ struct CreateTile: AsyncMigration {
             .unique(on: "title")
             .field("played", .bool, .required)
             .field("user_id", .uuid, .required, .references(User.schema, "id"))
+            .field("permissions", .string, .required)
             .create()
     }
     

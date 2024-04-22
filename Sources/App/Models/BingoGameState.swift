@@ -22,12 +22,16 @@ final class BingoGameState: Model, Content {
     @Parent(key: "user_id")
     var user: User
     
+    @Field(key: "permissions")
+    var permissions: Permission
+    
     init() { }
     
     init(game: BingoGame, user: User) throws {
         self.$user.id = try user.requireID()
         self.status = game.status
         self.tiles = game.flatTiles()
+        self.permissions = .userPublic
     }
 }
 

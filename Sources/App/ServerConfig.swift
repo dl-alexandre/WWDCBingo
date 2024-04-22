@@ -13,12 +13,21 @@ actor ServerConfig {
 }
 
 extension ServerConfig {
-    static func postgresConfiguration() throws -> SQLPostgresConfiguration { 
+    static func postgresConfiguration() throws -> SQLPostgresConfiguration {
+        #if DEBUG
+        SQLPostgresConfiguration(hostname: "localhost",
+                                 port: 5432,
+                                 username: "mcritz",
+                                 password: "",
+                                 database: "",
+                                 tls: .prefer(try .init(configuration: .clientDefault)))
+        #else
         SQLPostgresConfiguration(hostname: "db",
                                  port: 5432,
                                  username: "vapor_username",
                                  password: "vapor_password",
                                  database: "vapor_database",
                                  tls: .prefer(try .init(configuration: .clientDefault)))
+        #endif
     }
 }

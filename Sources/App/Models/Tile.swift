@@ -31,6 +31,9 @@ final class Tile: Model, Content {
     
     @Parent(key: "user_id")
     var user: User
+    
+    @Field(key: "permissions")
+    var permissions: Permission
 
     init() { /* Fluent magic */ }
 
@@ -39,6 +42,7 @@ final class Tile: Model, Content {
         self.title = title
         self.isPlayed = isPlayed
         self.$user.id = try user.requireID()
+        self.permissions = .userPublic
     }
 }
 

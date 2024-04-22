@@ -8,9 +8,11 @@ struct BingoGame: Codable {
     var id: UUID
     var status: Status
     var tiles: [[Tile]]
+    var permissions: Permission
     
     init(id: UUID? = nil, tiles: [Tile], size: Int) throws {
         self.id = id ?? UUID()
+        self.permissions = .userPublic
         let requiredBoardTileCount = size * size
         let terminalIndex = size - 1
         var randoTiles = tiles.shuffled()
