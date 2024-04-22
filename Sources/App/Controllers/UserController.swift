@@ -109,8 +109,7 @@ extension UserController {
         let publicUser = try req.content.decode(UserPublic.self)
         // FIXME: This always fails
         guard let uid = publicUser.id,
-              try uid == registeredUser.requireID(),
-              let updatedUser = User(userPublic: publicUser) else {
+              try uid == registeredUser.requireID() else {
             req.logger.warning(.init(stringLiteral: "Not a valid user"))
             throw Abort(.badRequest)
         }
