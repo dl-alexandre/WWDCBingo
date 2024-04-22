@@ -10,7 +10,7 @@ struct BingoGame: Codable {
     var tiles: [[Tile]]
     var permissions: Permission
     
-    init(id: UUID? = nil, tiles: [Tile], size: Int) throws {
+    init(id: UUID? = nil, tiles: [Tile], size: Int, centerTile: Tile) throws {
         self.id = id ?? UUID()
         self.permissions = .userPublic
         let requiredBoardTileCount = size * size
@@ -19,12 +19,18 @@ struct BingoGame: Codable {
         guard size > 0,
               tiles.count >= requiredBoardTileCount else {
             print("misconfigured")
-            throw Errors.invalid(reason: "Must have exactly the proper number of Tiles for board size squared")
+            throw Errors.invalid(reason: "Must have the proper number of Tiles for board size squared")
         }
+        let middleIndex = size.middle() - 1 // zero indexed
         var newBoard = [[Tile]]()
-        for _ in 0...terminalIndex {
+        rowLoop: for row in 0...terminalIndex {
             var newRow = [Tile]()
-            for _ in 0...terminalIndex {
+            columnLoop: for column in 0...terminalIndex {
+                if row == middleIndex
+                    && column == middleIndex {
+                    newRow.append(centerTile)
+                    continue columnLoop
+                }
                 guard let thisTile = randoTiles.popLast() else {
                     print("couldn't tile")
                     throw Errors.invalid(reason: "Failed to assign tiles")
@@ -35,6 +41,9 @@ struct BingoGame: Codable {
         }
         self.tiles = newBoard
         self.status = .ready
+        #if DEBUG
+        print(self)
+        #endif
     }
 }
 

@@ -48,11 +48,15 @@ struct GameController: RouteCollection {
     
     func create(req: Request) async throws -> BingoGameDTO {
         async let user = req.registeredUser()
+        async let goodMorning: Tile? = Tile.query(on: req.db)
+            .filter(\Tile.$title, .equal, "Good Morning!").first()
         async let tiles = Tile.query(on: req.db)
             .limit(25)
             .all()
-        // and "good morning"
-        let game = try BingoGame(tiles: try await tiles, size: 5)
+        guard let goodMorning = try await goodMorning else {
+            throw Abort(.internalServerError, reason: "Not a good morning")
+        }
+        let game = try BingoGame(tiles: try await tiles, size: 5, centerTile: goodMorning)
         let gameState = try game.gameState(for: try await user)
         try await gameState.save(on: req.db)
         return gameState.dto
