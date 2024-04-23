@@ -2,6 +2,10 @@ import Fluent
 import Vapor
 
 struct TileController: RouteCollection {
+    struct SearchQuery: Content {
+        var query: String?
+    }
+    
     func boot(routes: RoutesBuilder) throws {
         let tiles = routes.grouped("tiles")
 
@@ -9,6 +13,7 @@ struct TileController: RouteCollection {
         
         let tilesProtected = tiles.grouped(SessionToken.asyncAuthenticator(), SessionToken.guardMiddleware())
         tilesProtected.post(use: { try await self.create(req: $0) })
+        tilesProtected.post("search") { try await self.search(req: $0) }
         tilesProtected.group(":tileID") { tile in
             tile.put(use: { try await self.update(req: $0 )})
             tile.delete(use: { try await self.delete(req: $0) })
@@ -63,5 +68,17 @@ struct TileController: RouteCollection {
 
         try await tile.delete(on: req.db)
         return .noContent
+    }
+    
+    func search(req: Request) async throws -> Page<Tile> {
+        let searchQuery = try req.query.decode(SearchQuery.self)
+        guard let query = searchQuery.query,
+              query.count > 1 else {
+            throw Abort(.badRequest, reason: "Need a query of at least 2 characters")
+        }
+        let tiles = try await Tile.query(on: req.db)
+            .filter(\Tile.$title =~ query)
+            .paginate(for: req)
+        return tiles
     }
 }
