@@ -1,14 +1,14 @@
 import Fluent
 import Vapor
 
-struct BingoGameDTO: Content {
+struct BingoGameDTO: Content, Codable {
     let id: UUID?
     let status: Status
     let tiles: [[Tile]]
     let user: User.IDValue?
 }
 
-final class BingoGameState: Model, Content {
+final class BingoGameState: Model, Content, Codable {
     static let schema = "game"
     @ID(key: .id)
     var id: UUID?

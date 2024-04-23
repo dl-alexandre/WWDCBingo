@@ -3,8 +3,14 @@ import Fluent
 import Vapor
 
 func routes(_ app: Application) throws {
-    app.get { req async throws in
-        try await req.view.render("home", ["title": "WWDC Bingo!"])
+    struct HomeContent: Encodable {
+        var title: String
+        var gameData: BingoGameDTO
+    }
+    
+    
+    app.get { req async throws -> View in
+        return try await req.view.render("home", ["title" : "WWDC Bingo 2024!"])
     }
 
     app.get("healthcheck") { req async throws -> String in

@@ -1,4 +1,5 @@
 import Fluent
+import Plot
 import Vapor
 
 struct GameController: RouteCollection {
@@ -7,6 +8,7 @@ struct GameController: RouteCollection {
         
         games.get(use: { try await self.index(req: $0) })
         games.post(use: { try await self.create(req: $0) })
+        games.get("view") { try await self.gameView(req: $0) }
         
         games.group(":gameID") { game in
             game.get(use: { try await self.get(req: $0) })
@@ -38,6 +40,14 @@ struct GameController: RouteCollection {
                 }
             }
         }
+    }
+    
+    func gameView(req: Request) async throws -> String {
+        let game = try await BingoGameState.query(on: req.db).first()
+        guard let game else {
+            throw Abort(.notFound)
+        }
+        return GameView(game: game.dto).render()
     }
     
     func index(req: Request) async throws -> Page<BingoGameDTO> {
