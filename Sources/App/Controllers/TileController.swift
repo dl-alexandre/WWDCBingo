@@ -2,8 +2,9 @@ import Fluent
 import Vapor
 
 struct TileController: RouteCollection {
-    struct SearchQuery: Content {
+    struct QueryParams: Content {
         var query: String?
+        var permission: Permission?
     }
     
     func boot(routes: RoutesBuilder) throws {
@@ -14,6 +15,9 @@ struct TileController: RouteCollection {
         let tilesProtected = tiles.grouped(SessionToken.asyncAuthenticator(), SessionToken.guardMiddleware())
         tilesProtected.post(use: { try await self.create(req: $0) })
         tilesProtected.post("search") { try await self.search(req: $0) }
+        tilesProtected.group("admin") { adminTile in
+            adminTile.post("locktiles") { try await self.adminChangePermissions(req: $0) }
+        }
         tilesProtected.group(":tileID") { tile in
             tile.put(use: { try await self.update(req: $0 )})
             tile.delete(use: { try await self.delete(req: $0) })
@@ -31,6 +35,26 @@ struct TileController: RouteCollection {
         let tile = try await tilePublic.makeTile(on: req)
         try await tile.save(on: req.db)
         return tile
+    }
+    
+    func adminChangePermissions(req: Request) async throws -> HTTPStatus {
+        async let adminUser = req.adminUser()
+        guard let query = try? req.query.decode(QueryParams.self),
+              let permission = query.permission else {
+            throw Abort(.badRequest, reason: "need valid permission")
+        }
+        async let allTiles = Tile.query(on: req.db).all()
+        guard let _ = try? await adminUser else {
+            return .unauthorized
+        }
+        tileLoop: for tile in try await allTiles {
+            guard tile.permissions != .userPrivate else {
+                continue tileLoop
+            }
+            tile.permissions = permission
+            try await tile.save(on: req.db)
+        }
+        return .ok
     }
     
     func update(req: Request) async throws -> Tile {
@@ -53,6 +77,21 @@ struct TileController: RouteCollection {
             throw Abort(.unauthorized)
         }
         
+        if !requestUserIsAdmin {
+            switch tile.permissions {
+            case .adminPrivate:
+                throw Abort(.unauthorized, reason: "Tile is banned")
+            case .adminPublic:
+                throw Abort(.unauthorized, reason: "Sysadmin owns this tile")
+            case .userPrivate:
+                break
+            case .userPublic:
+                break
+            case .viewOnly:
+                throw Abort(.unauthorized, reason: "Tile is view-only. Are we live?")
+            }
+        }
+        
         tile.title = updatedTile.title
         if requestUserIsAdmin {
             tile.isPlayed = updatedTile.isPlayed
@@ -71,7 +110,7 @@ struct TileController: RouteCollection {
     }
     
     func search(req: Request) async throws -> Page<Tile> {
-        let searchQuery = try req.query.decode(SearchQuery.self)
+        let searchQuery = try req.query.decode(QueryParams.self)
         guard let query = searchQuery.query,
               query.count > 1 else {
             throw Abort(.badRequest, reason: "Need a query of at least 2 characters")
