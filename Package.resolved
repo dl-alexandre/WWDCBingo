@@ -1,5 +1,5 @@
 {
-  "originHash" : "f27dadf8d3525bd4f304a8f6f9eee7be85bb59e5ac8d61185a47b10a5214ecf4",
+  "originHash" : "de86ebd75e62b6736eeeb01c507e5df274b3104a3a9dd5cb484740578b6aec39",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -98,6 +98,15 @@
       "state" : {
         "revision" : "12ee56f25bd3fc4c2d09c2aa16e69de61dc786e8",
         "version" : "4.6.0"
+      }
+    },
+    {
+      "identity" : "plot",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/johnsundell/plot.git",
+      "state" : {
+        "revision" : "271926b4413fe868739d99f5eadcf2bd6cd62fb8",
+        "version" : "0.14.0"
       }
     },
     {

@@ -17,6 +17,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/leaf.git", from: "4.3.0"),
         // 📝 JWT
         .package(url: "https://github.com/vapor/jwt.git", from: "4.0.0"),
+        // 🖼️ Plot
+        .package(url: "https://github.com/johnsundell/plot.git", from: "0.14.0"),
     ],
     targets: [
         .executableTarget(
@@ -27,6 +29,7 @@ let package = Package(
                 .product(name: "Leaf", package: "leaf"),
                 .product(name: "JWT", package: "jwt"),
                 .product(name: "Vapor", package: "vapor"),
+                .product(name: "Plot", package: "plot"),
             ],
             swiftSettings: swiftSettings
         ),
