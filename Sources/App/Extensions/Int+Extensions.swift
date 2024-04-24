@@ -1,4 +1,4 @@
-import Darwin.C.math
+import Vapor
 
 extension Int {
     func middle() -> Int {
