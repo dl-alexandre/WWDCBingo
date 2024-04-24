@@ -12,7 +12,8 @@ It can be run from the included `docker-compose` file on any OS supported by Swi
 ### Dev Sandbox
 
 - Clone this repo
-- Change the values in `./Sources/App/ServerConfig.swift`
+- Copy `./Sources/App/ServerConfig.swift.example` to `./Sources/App/ServerConfig.swift`
+- Update the values in `./Sources/App/ServerConfig.swift`
 - Install & run Postgres
     - Recommendation: macOS [Postgres.app](https://postgresapp.com)
 - Terminal: `swift run App migrate` to provision Postgres
