@@ -4,7 +4,7 @@ import Vapor
 struct BingoGameDTO: Content, Codable {
     let id: UUID?
     let status: Status
-    let tiles: [[Tile]]
+    let tiles: [Tile]
     let user: User.IDValue?
 }
 
@@ -16,7 +16,9 @@ final class BingoGameState: Model, Content, Codable {
     @Field(key: "status")
     var status: Status
     
-    @Field(key: "tiles")
+    @Siblings(through: BingoGameStateTile.self,
+              from: \.$bingoGameState,
+              to: \.$tile)
     var tiles: [Tile]
     
     @Parent(key: "user_id")
@@ -27,11 +29,19 @@ final class BingoGameState: Model, Content, Codable {
     
     init() { }
     
-    init(game: BingoGame, user: User) throws {
+    init(game: BingoGame, user: User, db: any Database) async throws {
         self.$user.id = try user.requireID()
         self.status = game.status
-        self.tiles = game.flatTiles()
         self.permissions = .userPublic
+        try await self.save(on: db)
+        
+        let enumeratedTiles = game.flatTiles().enumerated()
+        for tile in enumeratedTiles {
+            try await self.$tiles.attach(tile.element, on: db) { pivot in
+                pivot.order = tile.offset
+            }
+        }
+//        try await self.$tiles.attach(game.flatTiles(), on: db)
     }
 }
 
@@ -45,12 +55,32 @@ extension BingoGameState: Equatable {
 }
 
 extension BingoGameState {
-    var dto: BingoGameDTO {
-        let tiles2D: [[Tile]] = BingoGame.makeBoard(from: tiles)
+    
+    public func getOrderedTilesFor(gameID: BingoGameState.IDValue, db: any Database) async throws -> [Tile] {
+        let bingoTiles = try await BingoGameStateTile.query(on: db)
+            .filter(\BingoGameStateTile.$bingoGameState.$id == gameID)
+            .sort(\BingoGameStateTile.$order)
+            .with(\.$tile)
+            .all()
+            .map { $0.tile }
+        return bingoTiles
+    }
+    
+    func makeDTO(on db: any Database) async throws -> BingoGameDTO {
+        guard let id else { throw Abort(.badRequest) }
+        let orderedTiles = try await getOrderedTilesFor(gameID: id, db: db)
+        print("tiles \(orderedTiles.map { $0.title})")
         
         return BingoGameDTO(id: self.id,
-                     status: self.status,
-                            tiles: tiles2D,
+                            status: self.status,
+                            tiles: orderedTiles,
                             user: self.$user.id)
+    }
+    
+    func updateTile(_ newTile: Tile) {
+        for var oldTile in self.tiles {
+            guard oldTile.id == newTile.id else { continue }
+            oldTile = newTile
+        }
     }
 }

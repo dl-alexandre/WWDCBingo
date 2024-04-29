@@ -19,6 +19,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt.git", from: "4.0.0"),
         // 🖼️ Plot
         .package(url: "https://github.com/johnsundell/plot.git", from: "0.14.0"),
+        // 🆀 Queues
+        // .package(url: "https://github.com/m-barthelemy/vapor-queues-fluent-driver.git", from: "3.0.0-beta1"),
     ],
     targets: [
         .executableTarget(
@@ -30,6 +32,7 @@ let package = Package(
                 .product(name: "JWT", package: "jwt"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Plot", package: "plot"),
+                // .product(name: "QueuesFluentDriver", package: "vapor-queues-fluent-driver"),
             ],
             swiftSettings: swiftSettings
         ),

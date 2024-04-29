@@ -34,6 +34,11 @@ final class Tile: Model, Content {
     
     @Field(key: "permissions")
     var permissions: Permission
+    
+    @Siblings(through: BingoGameStateTile.self,
+              from: \.$tile,
+              to: \.$bingoGameState)
+    var bingoGames: [BingoGameState]
 
     init() { /* Fluent magic */ }
 

@@ -1,3 +1,4 @@
+import Fluent
 import Foundation
 
 struct BingoGame: Codable {
@@ -66,14 +67,27 @@ extension BingoGame: CustomStringConvertible {
         tiles.flatMap { $0 }
     }
     
-    static func makeBoard(from tiles: [Tile]) -> [[Tile]] {
+    static func makeBoard(from tiles: [Tile]) throws -> [[Tile]] {
+        guard !tiles.isEmpty else {
+            throw Errors.invalid(reason: "board my have some tiles")
+        }
         let gameSize = Int(Double(tiles.count).squareRoot())
         let tiles2D = tiles.chunks(ofCount: gameSize).map { Array($0) }
         return tiles2D
     }
-    
-    func gameState(for user: User) throws -> BingoGameState {
-        return try BingoGameState(game: self, user: user)
+    /**
+     func gameState(for user: User, on db: any Database) async throws -> BingoGameState {
+         let gameState = try await BingoGameState(game: self, user: user, db: db)
+         if gameState.hasChanges {
+             try await gameState.save(on: db)
+         }
+ //        let flatty = self.flatTiles()
+ //        try await gameState.$tiles.attach(flatty, on: db)
+         return gameState
+     }
+     */
+    func gameState(for user: User, on db: any Database) async throws -> BingoGameState {
+        return try await BingoGameState(game: self, user: user, db: db)
     }
 }
 

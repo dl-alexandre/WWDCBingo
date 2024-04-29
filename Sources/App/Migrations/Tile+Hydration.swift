@@ -8,7 +8,7 @@ extension Tile {
             fatalError("Cannot hydrate because admin user could not be found")
         }
         let tiles = [
-            try Tile(title: "Good Morning!", user: admin),
+            try Tile(title: "Good Morning!", isPlayed: true, user: admin),
             try Tile(title: "Craig hair goof", user: admin),
             try Tile(title: "Through the floor", user: admin),
             try Tile(title: "Johny Srouji", user: admin),
