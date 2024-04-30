@@ -30,6 +30,7 @@ let package = Package(
                 .product(name: "JWT", package: "jwt"),
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Plot", package: "plot"),
+                // .product(name: "QueuesFluentDriver", package: "vapor-queues-fluent-driver"),
             ],
             swiftSettings: swiftSettings
         ),

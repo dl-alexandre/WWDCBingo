@@ -66,14 +66,13 @@ extension BingoGame: CustomStringConvertible {
         tiles.flatMap { $0 }
     }
     
-    static func makeBoard(from tiles: [Tile]) -> [[Tile]] {
+    static func makeBoard(from tiles: [Tile]) throws -> [[Tile]] {
+        guard !tiles.isEmpty else {
+            throw Errors.invalid(reason: "board my have some tiles")
+        }
         let gameSize = Int(Double(tiles.count).squareRoot())
         let tiles2D = tiles.chunks(ofCount: gameSize).map { Array($0) }
         return tiles2D
-    }
-    
-    func gameState(for user: User) throws -> BingoGameState {
-        return try BingoGameState(game: self, user: user)
     }
 }
 

@@ -24,6 +24,7 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(SessionRecord.migration)
     app.migrations.add(CreateTile())
     app.migrations.add(CreateBingoGameState())
+    app.migrations.add(CreateBingoGameStateTile())
     app.migrations.add(CreateInitialTiles())
     
     app.views.use(.leaf)

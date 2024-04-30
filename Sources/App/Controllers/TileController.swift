@@ -60,7 +60,7 @@ struct TileController: RouteCollection {
     func update(req: Request) async throws -> Tile {
         let tilePublic = try req.content.decode(TilePublic.self)
         async let newTile = tilePublic.makeTile(on: req)
-        async let tile =  Tile.find(req.parameters.get("tileID"),
+        async let tile = Tile.find(req.parameters.get("tileID"),
                                     on: req.db)
         guard let tile = try await tile,
               let tileID = tile.id,
