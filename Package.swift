@@ -19,8 +19,6 @@ let package = Package(
         .package(url: "https://github.com/vapor/jwt.git", from: "4.0.0"),
         // 🖼️ Plot
         .package(url: "https://github.com/johnsundell/plot.git", from: "0.14.0"),
-        // 🆀 Queues
-        // .package(url: "https://github.com/m-barthelemy/vapor-queues-fluent-driver.git", from: "3.0.0-beta1"),
     ],
     targets: [
         .executableTarget(

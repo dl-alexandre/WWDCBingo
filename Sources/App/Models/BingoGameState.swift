@@ -41,7 +41,6 @@ final class BingoGameState: Model, Content, Codable {
                 pivot.order = tile.offset
             }
         }
-//        try await self.$tiles.attach(game.flatTiles(), on: db)
     }
 }
 

@@ -6,7 +6,7 @@ struct GameController: RouteCollection {
     func boot(routes: any Vapor.RoutesBuilder) throws {
         let games = routes.grouped("games")
         
-        games.get(use: { try await self.index(req: $0) }) 
+        games.get(use: { try await self.index(req: $0) })
         games.post(use: { try await self.create(req: $0) })
         games.get("view") { try await self.gameView(req: $0) }
         
