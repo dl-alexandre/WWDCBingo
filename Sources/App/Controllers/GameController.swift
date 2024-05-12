@@ -9,34 +9,26 @@ struct GameController: RouteCollection {
         games.get(use: { try await self.index(req: $0) })
         games.post(use: { try await self.create(req: $0) })
         games.get("view") { try await self.gameView(req: $0) }
+        games.get("random") { try await self.random(req: $0) }
+        games.get("view", "random") {
+            let randomGame = try await self.random(req: $0)
+            return try await gameView(req: $0, for: randomGame)
+        }
         
         games.group(":gameID") { game in
             game.get(use: { try await self.get(req: $0) })
+            
             let frameSize = 15 * 1024 // 15KiB
             game.webSocket("play", maxFrameSize: WebSocketMaxFrameSize(integerLiteral: frameSize)) { req, ws in
-                ws.onPing { ws, buffy in
-                    ws.send("ping")
+                if req.application.connectedClients == nil {
+                    req.application.connectedClients = WebSocketClients()
                 }
-                ws.onText { ws, text in
-                    if let uuid = UUID(uuidString: text) {
-                        guard let game = try? await BingoGameState.find(uuid, on: req.db),
-                              let gameDTOData = try? JSONEncoder().encode(game) else {
-                            try? await ws.send("Not found")
-                            return ()
-                        }
-                        ws.send(gameDTOData)
-                    }
-                    try? await ws.send(text.reversed())
-                }
-                ws.onBinary { ws, buffy in
-                    let size = buffy.readableBytes
-                    ws.send("Got \(size) bytes")
-                }
-                ws.onPong { ws, buffy in
-                    ws.send("pong")
-                }
+                await req.application.connectedClients?.add(id: req.id, ws: ws)
+                
                 ws.onClose.whenComplete { _ in
-                    print("closed")
+                    Task {
+                        await req.application.connectedClients?.remove(id: req.id)
+                    }
                 }
             }
         }
@@ -48,13 +40,24 @@ struct GameController: RouteCollection {
         guard let game else {
             throw Abort(.notFound)
         }
+        return try await gameView(req: req, for: game)
+    }
+    
+    func gameView(req: Request, for game: BingoGameState) async throws -> String {
         let gameDTO = try await game.makeDTO(on: req.db)
         return GameView(game: gameDTO).render()
     }
     
-    // FIXME: This is brittle and hacky
     func index(req: Request) async throws -> Page<BingoGameState> {
         return try await BingoGameState.query(on: req.db).paginate(for: req)
+    }
+    
+    func random(req: Request) async throws -> BingoGameState {
+        let all = try await BingoGameState.query(on: req.db).all()
+        guard let randomGame = all.shuffled().first else {
+            throw Abort(.notFound, reason: "No games in database")
+        }
+        return randomGame
     }
     
     func create(req: Request) async throws -> BingoGameState {

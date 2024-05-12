@@ -9,11 +9,14 @@ Play bingo along with wwdc.
 This is a Swift on Server project using [Vapor 4](https://docs.vapor.codes).
 It can be run from the included `docker-compose` file on any OS supported by Swift. See  [Vapor on Swift Package Index](https://swiftpackageindex.com/vapor/vapor) for compatability info.
 
+### Configure Secrets
+
+1. Copy `env-example` to `.env`
+2. Update your values in `.env`
+
 ### Dev Sandbox
 
 - Clone this repo
-- Copy `./Sources/App/ServerConfig.swift.example` to `./Sources/App/ServerConfig.swift`
-- Update the values in `./Sources/App/ServerConfig.swift`
 - Install & run Postgres
     - Recommendation: macOS [Postgres.app](https://postgresapp.com)
 - Terminal: `swift run App migrate` to provision Postgres
@@ -36,5 +39,5 @@ A typical first build and run:
 - `docker compose run app`
 
 ## What Next
-- Point your browser at `localhost:8080` (or your prod uri)
+- Point your browser at `localhost:8080`
 - Try downloading and using [RapidAPI](https://paw.cloud) with the included `RapidAPI.paw` file.

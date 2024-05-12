@@ -1,33 +1,36 @@
 import PostgresKit
+import Vapor
 
 actor ServerConfig {
-    static let siteDomainName = "wwdcbingo.com"
+    static let siteDomainName = Environment.get("BINGO_SITE_DOMAIN_NAME")
     static let adminTagName = "Admin"
-    static let jwtSignerKey = "e74cd783ad64e74bf8c76d96bf997f27bba93e53f7611069c68c13f60e06f94de535e103e595d5412307fc5be5b0a9e9636cad765f48a6e29f5d1eed9f3c6197"
+    static let jwtSignerKey = Environment.get("BINGO_JWT_SIGNER_KEY")
     static let adminUserPublic = UserPublic(id: nil,
                                             givenName: "System",
                                             familyName: "Admin",
-                                            email: "wwdc@michaelcritz.com",
-                                            password: "Y3ll0wb4ll!ww")
+                                            email: Environment.get("BINGO_ADMIN_EMAIL"),
+                                            password: Environment.get("BINGO_ADMIN_PASSWORD"))
     static let adminTag = Tag(name: adminTagName)
 }
 
 extension ServerConfig {
     static func postgresConfiguration() throws -> SQLPostgresConfiguration {
-        #if DEBUG
-        SQLPostgresConfiguration(hostname: "localhost",
-                                 port: 5432,
-                                 username: "mcritz",
-                                 password: "",
-                                 database: "",
-                                 tls: .prefer(try .init(configuration: .clientDefault)))
-        #else
-        SQLPostgresConfiguration(hostname: "db",
-                                 port: 5432,
-                                 username: "vapor_username",
-                                 password: "vapor_password",
-                                 database: "vapor_database",
-                                 tls: .prefer(try .init(configuration: .clientDefault)))
-        #endif
+        guard let dbDomain      = Environment.get("BINGO_SITE_DOMAIN_NAME"),
+              let dbPortString  = Environment.get("BINGO_DB_PORT"),
+              let dbPort        = Int(dbPortString) else {
+            throw Errors.misconfigured(reason: """
+                Environment misconfigured.
+                Copy the `env-example` file to `.env` then edit the values as needed.
+            """)
+        }
+        let dbUser      = Environment.get("BINGO_DB_USER") ?? ""
+        let dbPassword  = Environment.get("BINGO_DB_PASSWORD") ?? ""
+        let dbName      = Environment.get("BINGO_DB_NAME") ?? ""
+        return SQLPostgresConfiguration(hostname: dbDomain,
+                                         port: dbPort,
+                                         username: dbUser,
+                                         password: dbPassword,
+                                         database: dbName,
+                                         tls: .prefer(try .init(configuration: .clientDefault)))
     }
 }

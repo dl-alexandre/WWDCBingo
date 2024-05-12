@@ -68,7 +68,6 @@ extension BingoGameState {
     func makeDTO(on db: any Database) async throws -> BingoGameDTO {
         guard let id else { throw Abort(.badRequest) }
         let orderedTiles = try await getOrderedTilesFor(gameID: id, db: db)
-        print("tiles \(orderedTiles.map { $0.title})")
         
         return BingoGameDTO(id: self.id,
                             status: self.status,

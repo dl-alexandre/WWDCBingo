@@ -9,7 +9,7 @@ extension Tile {
         }
         let tiles = [
             try Tile(title: "Good Morning!", isPlayed: true, user: admin),
-            try Tile(title: "Craig hair goof", user: admin),
+            try Tile(title: "Craig goof", user: admin),
             try Tile(title: "Through the floor", user: admin),
             try Tile(title: "Johny Srouji", user: admin),
             try Tile(title: "AI + Music", user: admin),
@@ -35,6 +35,7 @@ extension Tile {
             try Tile(title: "New Siri design", user: admin),
             try Tile(title: "AI + App Store", user: admin),
             try Tile(title: "AI API", user: admin),
+            try Tile(title: "AI + App Intents", user: admin),
             try Tile(title: "Custom AI model", user: admin),
             try Tile(title: "tvOS", user: admin),
             try Tile(title: "Maps", user: admin),
