@@ -13,7 +13,10 @@ public func configure(_ app: Application) async throws {
     app.databases.use(DatabaseConfigurationFactory
         .postgres(configuration: try ServerConfig.postgresConfiguration()), 
                       as: .psql)
-    app.jwt.signers.use(.hs512(key: ServerConfig.jwtSignerKey))
+    guard let signerKey = ServerConfig.jwtSignerKey else {
+        throw Errors.misconfigured(reason: "BINGO_JWT_SIGNER_KEY not set in Environment")
+    }
+    app.jwt.signers.use(.hs512(key: signerKey))
     app.sessions.use(.fluent)
 
     app.migrations.add(CreateTodo())

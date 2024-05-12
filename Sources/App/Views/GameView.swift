@@ -10,5 +10,8 @@ struct GameView: Component {
             }
         }
         .class("game")
+        .id(game.id?.uuidString ?? String(game.tiles.hashValue))
+        .attribute(named: "hx-ext", value: "ws")
+        .attribute(named: "ws-connect", value: "/games/\(game.id!.uuidString)/play")
     }
 }

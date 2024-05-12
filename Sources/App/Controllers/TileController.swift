@@ -57,6 +57,30 @@ struct TileController: RouteCollection {
         return .ok
     }
     
+    func updateWebsocketClients(req: Request, tileID: Tile.IDValue) async throws {
+        guard let connectedClients = await req.application.connectedClients?.clients else {
+            // Nobody on websockets, just return
+            return
+        }
+        
+        let games = try await BingoGameStateTile.query(on: req.db)
+            .filter(\BingoGameStateTile.$tile.$id == tileID)
+            .with(\.$bingoGameState)
+            .all()
+            .map {
+                $0.bingoGameState
+            }
+        
+        for game in games {
+            let gameDTO = try await game.makeDTO(on: req.db)
+            let gameView = GameView(game: gameDTO).render()
+            
+            connectedClients.forEach { _, webSocket in
+                webSocket.send(gameView)
+            }
+        }
+    }
+    
     func update(req: Request) async throws -> Tile {
         let tilePublic = try req.content.decode(TilePublic.self)
         async let newTile = tilePublic.makeTile(on: req)
@@ -83,21 +107,26 @@ struct TileController: RouteCollection {
                 throw Abort(.unauthorized, reason: "Tile is banned")
             case .adminPublic:
                 throw Abort(.unauthorized, reason: "Sysadmin owns this tile")
-            case .userPrivate:
-                break
-            case .userPublic:
-                break
             case .viewOnly:
                 throw Abort(.unauthorized, reason: "Tile is view-only. Are we live?")
+            default:
+                break
             }
+        } else { 
+            // only admins can say a title has been played
+            tile.isPlayed = updatedTile.isPlayed
         }
         
         tile.title = updatedTile.title
-        if requestUserIsAdmin {
-            tile.isPlayed = updatedTile.isPlayed
+        
+        try await tile.save(on: req.db) // Done udpating tile
+        
+        do {
+            try await updateWebsocketClients(req: req, tileID: tileID)
+            return tile
+        } catch {
+            throw Abort(.internalServerError, reason: error.localizedDescription)
         }
-        try await tile.save(on: req.db)
-        return tile
     }
 
     func delete(req: Request) async throws -> HTTPStatus {
@@ -116,7 +145,7 @@ struct TileController: RouteCollection {
             throw Abort(.badRequest, reason: "Need a query of at least 2 characters")
         }
         let tiles = try await Tile.query(on: req.db)
-            .filter(\Tile.$title =~ query)
+            .filter(\Tile.$title ~~ query)
             .paginate(for: req)
         return tiles
     }

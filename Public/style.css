@@ -106,3 +106,14 @@ button:focus-visible {
         }
     }
 }
+
+a {
+    color: #aef;
+}
+
+section#footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem;
+}
