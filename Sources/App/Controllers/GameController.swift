@@ -17,6 +17,7 @@ struct GameController: RouteCollection {
         
         games.group(":gameID") { game in
             game.get(use: { try await self.get(req: $0) })
+            game.delete(use: { try await self.delete(req: $0) })
             
             let frameSize = 15 * 1024 // 15KiB
             game.webSocket("play", maxFrameSize: WebSocketMaxFrameSize(integerLiteral: frameSize)) { req, ws in
@@ -93,5 +94,17 @@ struct GameController: RouteCollection {
             .all()
             .map { $0.tile }
         return BingoGameDTO(id: nil, status: bingoGame.status, tiles: bingoTiles, user: bingoGame.$user.id)
+    }
+    
+    func delete(req: Request) async throws -> HTTPResponseStatus {
+        guard let _ = try await req.adminUser() else {
+            throw Abort(.unauthorized)
+        }
+        guard let bingoGame = try await BingoGameState.find(req.parameters.get("gameID"), on: req.db) else {
+            throw Abort(.notFound)
+        }
+        try await bingoGame.$tiles.detachAll(on: req.db)
+        try await bingoGame.delete(on: req.db)
+        return .ok
     }
 }
