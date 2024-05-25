@@ -1,8 +1,17 @@
-//
-//  File.swift
-//  
-//
-//  Created by Michael Critz on 5/15/24.
-//
+import Plot
 
-import Foundation
+struct AdminTileView: Component {
+    let tiles: [Tile]
+    var body: Component {
+        Div {
+            Text("Admin: Tiles")
+            for tile in tiles {
+                Div {
+                    Text(tile.title)
+                    Input(type: .checkbox)
+                        .attribute(.checked( tile.isPlayed ))
+                }
+            }
+        }
+    }
+}

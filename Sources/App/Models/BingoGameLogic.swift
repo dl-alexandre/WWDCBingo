@@ -14,11 +14,17 @@ struct BingoGame: Codable {
         self.id = id ?? UUID()
         self.permissions = .userPublic
         let requiredBoardTileCount = size * size
-        let terminalIndex = size - 1
         var randoTiles = tiles.shuffled()
+        try randoTiles.removeAll { tile in
+            do {
+                return try tile.requireID() == centerTile.requireID()
+            } catch {
+                throw Errors.invalid(reason: "some tiles do not have ID")
+            }
+        }
+        let terminalIndex = size - 1
         guard size > 0,
               tiles.count >= requiredBoardTileCount else {
-            print("misconfigured")
             throw Errors.invalid(reason: "Must have the proper number of Tiles for board size squared")
         }
         let middleIndex = size.middle() - 1 // zero indexed
@@ -32,7 +38,6 @@ struct BingoGame: Codable {
                     continue columnLoop
                 }
                 guard let thisTile = randoTiles.popLast() else {
-                    print("couldn't tile")
                     throw Errors.invalid(reason: "Failed to assign tiles")
                 }
                 newRow.append(thisTile)

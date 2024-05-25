@@ -111,9 +111,18 @@ a {
     color: #aef;
 }
 
-section#footer {
+footer {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 0.5rem;
+}
+
+#login {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.hidden {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
 }

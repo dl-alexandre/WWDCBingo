@@ -17,11 +17,15 @@ struct TileController: RouteCollection {
         tilesProtected.post("search") { try await self.search(req: $0) }
         tilesProtected.group("admin") { adminTile in
             adminTile.post("locktiles") { try await self.adminChangePermissions(req: $0) }
+            adminTile.get("") { try await self.adminView(req: $0) }
         }
         tilesProtected.group(":tileID") { tile in
             tile.put(use: { try await self.update(req: $0 )})
             tile.delete(use: { try await self.delete(req: $0) })
         }
+        
+        let tilesSessionProtected = tiles.grouped(User.sessionAuthenticator(), User.guardMiddleware())
+        tilesSessionProtected.get("admin") { try await self.adminView(req: $0) }
     }
     
     // MARK: CRUD

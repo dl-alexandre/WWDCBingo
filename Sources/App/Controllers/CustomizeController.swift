@@ -1,8 +1,18 @@
-//
-//  File.swift
-//  
-//
-//  Created by Michael Critz on 5/21/24.
-//
+import Fluent
+import Plot
+import Vapor
 
-import Foundation
+struct CustomizeController: RouteCollection {
+    func boot(routes: any Vapor.RoutesBuilder) throws {
+        let customize = routes.grouped("customize")
+        customize.post { try await self.handleCustomize(req: $0) }
+        customize.post("cancel") { _ in return "<button>Customize</button>"}
+    }
+    
+    func handleCustomize(req: Request) async throws -> String {
+        guard let user = req.auth.get(User.self) else {
+            return LoginView().render()
+        }
+        return LogoutView(userName: user.email).render()
+    }
+}

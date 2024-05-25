@@ -1,25 +1,75 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>#(title)</title>
-  <link href="/style.css" rel="stylesheet" />
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-  <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
+    <meta charset="utf-8" />
+    <title>#(title)</title>
+    <link href="/style.css" rel="stylesheet" />
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js"></script>
 </head>
-
 <body>
+    <script>
+        function showForm(e) {
+            checkCookie()
+            document.getElementById('#customize').classList.toggle('hidden')
+        }
+        
+        function getCookie(cname) {
+          let name = cname + "=";
+          let ca = document.cookie.split(';');
+          for(let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+              c = c.substring(1)
+            }
+            if (c.indexOf(name) == 0) {
+              return c.substring(name.length, c.length)
+            }
+          }
+          return ""
+        }
+        
+        function checkCookie() {
+          let user = getCookie("username");
+          if (user != "") {
+            alert("Welcome again " + user);
+          } else {
+            document.getElementById('login').classList.add('show')
+          }
+        }
+    </script>
   <header>
     <h1>#(title)</h1>
-    
+    <div id="customize">
+<!--        <button id="btn-customize" hx-post="/customize" hx-target="#customize" hx-swap="outerHTML">Customize</button>-->
+        <button id="btn-customize" ontouchdown="showForm()">Customize</button>
+    <div>
+<!--    Replace with HTMLx swap    -->
+    <div id="#customize" class="show">
+        <form id="login"
+            hx-target="#customize"
+            hx-post="/users/login"
+            >
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="HX Username" name="username" autocomplete="username" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="HX Password" name="password" autocomplete="current-password" required>
+            <input type="submit" value="Sign In">
+        </form>
+    </div>
   </header>
-  <div hx-get="/games/view/random" hx-swap="outerHTML" hx-trigger="load" class="loading">
+  <div id="main" hx-get="/games/view/random"
+      hx-swap="outerHTML"
+      hx-trigger="load"
+      class="game loading">
     Loading…<br />
     You’ll need JavaScript enabled to play.
     <h3>WWDC Bingo 2024 Game Time</h3>
     <h4>Come back June 10<h4>
     <p>Every year Apple releases new veresions of its operating systems: iOS for iPhone, iPad OS for iPad, macOS for Macs, watchOS for Apple Watch, and visionOS for Apple Vision Pro.</p>
-    <p>WWDC Bingo lets us play along with their show. We put rumors, hopes, dreams, and fears into game tiles. If they happen then the tile gets marked. Connect five in a row, column, or diagonal and you win!</p>
+    <p>WWDC Bingo lets us play along with their show. We put rumors, hopes, dreams, and fears into game tiles. If they happen then the tile gets marked. Connect five in a row, column, or diagonal and you win<sup>*</sup>!</p>
+    <p><sup>*</sup>fake internet points</p>
   </div>
   <section id="footer">
     <span>

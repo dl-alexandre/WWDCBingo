@@ -58,7 +58,7 @@ public final class User: Model, Content {
     }
 }
 
-// MARK: Auth
+// MARK: Authenticatable
 extension User: Authenticatable {
     static func createPasswordHash(_ password: String) throws -> String {
         guard let passData = password.data(using: .utf8) else {
@@ -75,7 +75,8 @@ extension User: Authenticatable {
     }
 }
 
-extension User: ModelAuthenticatable {
+// MARK: ModelAuthenticatable, ModelCredentialsAuthenticatable
+extension User: ModelAuthenticatable, ModelCredentialsAuthenticatable {
     public static var usernameKey: KeyPath<User, Field<String>> {
         \User.$email
     }
@@ -93,9 +94,26 @@ extension User: ModelAuthenticatable {
     }
 }
 
+// MARK: SessionAuthenticatable
+extension User: SessionAuthenticatable {
+    public var sessionID: UUID {
+        self.id ?? UUID() // We can’t just crash here
+    }
+}
+
+struct UserSessionAuthenticator: AsyncSessionAuthenticator {
+    typealias User = App.User
+    
+    func authenticate(sessionID: UUID, for request: Request) async throws {
+        guard let user = try await User.find(sessionID, on: request.db) else {
+            throw Abort(.unauthorized)
+        }
+        request.auth.login(user)
+    }
+}
+
 // MARK: Admin
 extension User {
-    // TODO: Update this to be authorative
     func isAdmin(db: Database) async throws -> Bool {
         let adminTagCount = try await self.$tags.query(on: db)
             .filter(\.$name == ServerConfig.adminTagName)
