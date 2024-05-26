@@ -2,7 +2,6 @@ import JWT
 import NIOSSL
 import Fluent
 import FluentPostgresDriver
-import Leaf
 import Vapor
 
 // configures your application
@@ -40,8 +39,6 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateInitialTiles())
     app.migrations.add(CreateInitialGames())
     
-    app.views.use(.leaf)
-
     // register routes
     try routes(app)
 }

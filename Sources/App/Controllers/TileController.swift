@@ -92,15 +92,6 @@ struct TileController: RouteCollection {
         }
     }
     
-    func updateView(req: Request) async throws -> Response {
-        let tile = try await update(req: req)
-        try await tile.$user.load(on: req.db)
-        guard let tileID = try? tile.requireID() else {
-            throw Abort(.badRequest)
-        }
-        return WebView.response(for: EditTileRow(tile: tile, tileID: tileID.uuidString))
-    }
-    
     func update(req: Request) async throws -> Tile {
         let tilePublic = try req.content.decode(TilePublic.self)
         async let newTile = tilePublic.makeTile(on: req)
