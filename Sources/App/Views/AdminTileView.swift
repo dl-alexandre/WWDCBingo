@@ -6,10 +6,12 @@ struct AdminTileView: Component {
         Div {
             Text("Admin: Tiles")
             for tile in tiles {
-                Div {
-                    Text(tile.title)
-                    Input(type: .checkbox)
-                        .attribute(.checked( tile.isPlayed ))
+                if let tileID = try? tile.requireID() {
+                    AdminTileRowView(tile: tile, tileID: tileID.uuidString)
+                } else {
+                    Div {
+                        Text("Invalid: \(tile.title)")
+                    }
                 }
             }
         }

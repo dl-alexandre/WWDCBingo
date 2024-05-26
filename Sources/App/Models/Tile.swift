@@ -12,7 +12,9 @@ extension TilePublic: Hashable { }
 
 extension TilePublic {
     func makeTile(on req: Request) async throws -> Tile {
-        let user = try await req.registeredUser()
+        guard let user = req.auth.get(User.self) else {
+            throw Abort(.unauthorized, reason: "Not signed in")
+        }
         return try Tile(id: id, title: title, isPlayed: isPlayed, user: user)
     }
 }

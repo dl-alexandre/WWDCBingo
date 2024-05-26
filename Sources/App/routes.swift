@@ -29,7 +29,6 @@ func routes(_ app: Application) throws {
     }
     
     app.get { req async throws in
-        print(req.hasSession)
         let user = try? req.auth.require(User.self)
         return Response(status: .ok,
                         body: Response.Body(stringLiteral: WebView.homePage(user)))

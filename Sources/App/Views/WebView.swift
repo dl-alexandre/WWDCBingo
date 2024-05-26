@@ -23,19 +23,22 @@ struct WebView {
                     H1 {
                         Text("WWDC Bingo 2024!")
                     }
-                    if let user {
-                        LogoutView(userName: user.email)
-                    } else {
-                        Div {
-                            Button {
-                                Text("Customize")
+                    Div {
+                        if let user {
+                            LogoutView(userName: user.email)
+                            Link(url: "/tiles/view") {
+                                Text("Tiles")
                             }
-                            .id("btn-customize")
-                            .attribute(named: "hx-post", value: "/customize")
-                            .attribute(named: "hx-target", value: "#customize")
+                        } else {
+                                Button {
+                                    Text("Customize")
+                                }
+                                .id("btn-customize")
+                                .attribute(named: "hx-post", value: "/customize")
+                                .attribute(named: "hx-target", value: "#customize")
                         }
-                        .id("customize")
                     }
+                    .id("customize")
                 }
                 Div {
                     Text("You’ll need JavaScript enabled to play")
