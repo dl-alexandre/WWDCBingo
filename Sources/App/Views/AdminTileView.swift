@@ -4,10 +4,10 @@ struct AdminTileView: Component {
     let tiles: [Tile]
     var body: Component {
         Div {
-            Text("Admin: Tiles")
+            H1("Edit Tiles")
             for tile in tiles {
                 if let tileID = try? tile.requireID() {
-                    AdminTileRowView(tile: tile, tileID: tileID.uuidString)
+                    EditTileRow(tile: tile, tileID: tileID.uuidString)
                 } else {
                     Div {
                         Text("Invalid: \(tile.title)")
@@ -15,5 +15,6 @@ struct AdminTileView: Component {
                 }
             }
         }
+        .class("main")
     }
 }

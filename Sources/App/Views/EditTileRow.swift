@@ -1,6 +1,6 @@
 import Plot
 
-struct AdminTileRowView: Component {
+struct EditTileRow: Component {
     let tile: Tile
     let tileID: String
     
@@ -29,7 +29,9 @@ struct AdminTileRowView: Component {
                 }
             }
         }
+        .class("edit-tile-row")
         .attribute(named: "hx-put", value: "/tiles/\(tileID)/view")
         .attribute(named: "hx-include", value: "this")
+        .attribute(named: "hx-trigger", value: "change")
     }
 }

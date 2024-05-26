@@ -98,7 +98,7 @@ struct TileController: RouteCollection {
         guard let tileID = try? tile.requireID() else {
             throw Abort(.badRequest)
         }
-        return WebView.response(for: AdminTileRowView(tile: tile, tileID: tileID.uuidString))
+        return WebView.response(for: EditTileRow(tile: tile, tileID: tileID.uuidString))
     }
     
     func update(req: Request) async throws -> Tile {
