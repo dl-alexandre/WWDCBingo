@@ -3,13 +3,19 @@ import Vapor
 
 struct UserController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
-        let usersProtected = routes.grouped(SessionToken.asyncAuthenticator(), SessionToken.guardMiddleware())
-        let users = usersProtected.grouped("users")
-        users.get(use: { try await self.index(req: $0) })
-        users.post(use: { try await self.create(req: $0) })
-        users.get("tags") { try await self.getTags(req: $0) }
+        let users = routes.grouped("users")
+        users.post("logout") { try await self.logout(req: $0) }
         
-        users.group(":userID") { user in
+        users.get("login") { self.loginView(req: $0) }
+        let userProtected = users.grouped(User.credentialsAuthenticator(), User.guardMiddleware())
+        userProtected.post("login") { try await self.login(req: $0) }
+        
+        let usersProtected = users.grouped(SessionToken.asyncAuthenticator(), SessionToken.guardMiddleware())
+        usersProtected.get(use: { try await self.index(req: $0) })
+        usersProtected.get("tags") { try await self.getTags(req: $0) }
+        usersProtected.post(use: { try await self.create(req: $0) })
+        
+        usersProtected.group(":userID") { user in
             user.get(use: { try await self.get(req: $0) })
             user.put(use: { try await self.update(req: $0) })
             user.delete(use: { try await self.delete(req: $0) })
@@ -17,7 +23,31 @@ struct UserController: RouteCollection {
             user.post("tags", ":tagID") { try await self.adminAddTagOnUser(req: $0) }
         }
     }
+}
 
+struct LoginValues: Codable {
+    let username: String
+    let password: String
+}
+
+// MARK: - Auth
+extension UserController {
+    func login(req: Request) async throws -> String {
+        guard let user = req.auth.get(User.self) else {
+            throw Abort(.unauthorized)
+        }
+        let isAdmin = try await user.isAdmin(db: req.db)
+        return LogoutView(userName: user.email, isAdmin: isAdmin).render()
+    }
+    
+    func loginView(req: Request) -> Response {
+        return WebView.response(for: LoginView())
+    }
+    
+    func logout(req: Request) async throws -> String {
+        req.auth.logout(User.self)
+        return LoginView().render()
+    }
 }
 
 // MARK: - CRUD

@@ -24,3 +24,9 @@ extension SessionToken {
         self.userID = try user.requireID()
     }
 }
+
+extension SessionToken: SessionAuthenticatable {
+    var sessionID: String {
+        return userID.uuidString
+    }
+}

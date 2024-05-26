@@ -1,4 +1,3 @@
-import Leaf
 import Fluent
 import Vapor
 
@@ -28,8 +27,14 @@ func routes(_ app: Application) throws {
         var gameData: BingoGameDTO
     }
     
-    app.get { req async throws -> View in
-        return try await req.view.render("home", ["title" : "WWDC Bingo 2024!"])
+    app.get { req async throws in
+        let user = try? req.auth.require(User.self)
+        var isAdmin = false
+        if let user {
+            isAdmin = try await user.isAdmin(db: req.db)
+        }
+        return Response(status: .ok,
+                        body: Response.Body(stringLiteral: WebView.homePage(user, isAdmin: isAdmin)))
     }
 
     app.get("healthcheck") { req async throws -> String in
@@ -44,6 +49,7 @@ func routes(_ app: Application) throws {
         return "OK \(userCount) \(routeCount)\n\(connectedClients ?? "—")"
     }
     
+    // MARK: JWT Login
     let passwordProtected = app.grouped(User.authenticator(), User.guardMiddleware())
     passwordProtected.post("login") { req -> [String: String] in
         let user = try req.auth.require(User.self)
@@ -51,7 +57,7 @@ func routes(_ app: Application) throws {
         return try [ "jwt" : req.jwt.sign(payload) ]
     }
     
-    let secure = app.grouped(SessionToken.authenticator(), SessionToken.guardMiddleware())
+    let secure = app.grouped(User.sessionAuthenticator(), SessionToken.guardMiddleware())
     secure.get("jwt") { req -> String in
         let sessToken = try req.jwt.verify(as: SessionToken.self)
         return "\(sessToken.subject) \(sessToken.expiration) \(sessToken.userID)"
@@ -85,4 +91,5 @@ func routes(_ app: Application) throws {
     try app.register(collection: UserController())
     try app.register(collection: TileController())
     try app.register(collection: GameController())
+    try app.register(collection: CustomizeController())
 }

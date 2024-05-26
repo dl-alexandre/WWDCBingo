@@ -15,13 +15,24 @@ struct TileController: RouteCollection {
         let tilesProtected = tiles.grouped(SessionToken.asyncAuthenticator(), SessionToken.guardMiddleware())
         tilesProtected.post(use: { try await self.create(req: $0) })
         tilesProtected.post("search") { try await self.search(req: $0) }
+        tilesProtected.post("locktiles") { try await self.adminChangePermissions(req: $0) }
         tilesProtected.group("admin") { adminTile in
-            adminTile.post("locktiles") { try await self.adminChangePermissions(req: $0) }
+            adminTile.get("") { try await self.adminView(req: $0) }
         }
         tilesProtected.group(":tileID") { tile in
             tile.put(use: { try await self.update(req: $0 )})
+            tile.put("view") { try await self.updateView(req: $0) }
             tile.delete(use: { try await self.delete(req: $0) })
         }
+        
+        // TODO: Make a login view
+        let tilesSessionProtected = tiles.grouped(User.sessionAuthenticator(), User.redirectMiddleware(path: "/"))
+        tilesSessionProtected.get("admin") { try await self.adminView(req: $0) }
+        tilesSessionProtected.get("view") { try await self.adminView(req: $0) }
+        tilesSessionProtected.group(":tileID") { adminTileView in
+            adminTileView.put("view") { try await self.updateView(req: $0) }
+        }
+
     }
     
     // MARK: CRUD
@@ -91,6 +102,9 @@ struct TileController: RouteCollection {
               let updatedTile = try? await newTile,
               let newTileID = updatedTile.id,
               tileID == newTileID else {
+            req.logger.warning("Could not update tile", metadata: [
+                "tile" : .init(stringLiteral: req.parameters.get("tileID") ?? "no tile id")
+            ])
             throw Abort(.notFound)
         }
         
