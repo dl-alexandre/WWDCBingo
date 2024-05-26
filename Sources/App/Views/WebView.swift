@@ -14,7 +14,7 @@ struct WebView {
         .render()
     }
     
-    static func body(_ content: Component? = nil, user: User? ) -> Component {
+    static func body(_ content: Component? = nil, user: User?, isAdmin: Bool = false ) -> Component {
         Div {
             if let content {
                 content
@@ -25,7 +25,7 @@ struct WebView {
                     }
                     Div {
                         if let user {
-                            LogoutView(userName: user.email)
+                            LogoutView(userName: user.email, isAdmin: isAdmin)
                             Link(url: "/tiles/view") {
                                 Text("Tiles")
                             }
@@ -73,8 +73,8 @@ struct WebView {
         .id("main")
     }
     
-    static func homePage(_ user: User? = nil) -> String {
-        Self.renderPage(Self.body(user: user))
+    static func homePage(_ user: User? = nil, isAdmin: Bool = false) -> String {
+        Self.renderPage(Self.body(user: user, isAdmin: isAdmin))
     }
 }
 

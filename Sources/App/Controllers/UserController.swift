@@ -36,15 +36,8 @@ extension UserController {
         guard let user = req.auth.get(User.self) else {
             throw Abort(.unauthorized)
         }
-        if try await user.isAdmin(db: req.db) {
-            return """
-            <b>\(user.email) is admin</b><button hx-post="/users/logout">Logout</button>
-            """
-        } else {
-            return """
-            <b>\(user.email)</b><button hx-post="/users/logout">Logout</button>
-            """
-        }
+        let isAdmin = try await user.isAdmin(db: req.db)
+        return LogoutView(userName: user.email, isAdmin: isAdmin).render()
     }
     
     func loginView(req: Request) -> Response {

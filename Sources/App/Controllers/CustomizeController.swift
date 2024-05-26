@@ -13,6 +13,7 @@ struct CustomizeController: RouteCollection {
         guard let user = req.auth.get(User.self) else {
             return LoginView().render()
         }
-        return LogoutView(userName: user.email).render()
+        let isAdmin = try await user.isAdmin(db: req.db)
+        return LogoutView(userName: user.email, isAdmin: isAdmin).render()
     }
 }

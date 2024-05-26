@@ -30,8 +30,12 @@ func routes(_ app: Application) throws {
     
     app.get { req async throws in
         let user = try? req.auth.require(User.self)
+        var isAdmin = false
+        if let user {
+            isAdmin = try await user.isAdmin(db: req.db)
+        }
         return Response(status: .ok,
-                        body: Response.Body(stringLiteral: WebView.homePage(user)))
+                        body: Response.Body(stringLiteral: WebView.homePage(user, isAdmin: isAdmin)))
     }
 
     app.get("healthcheck") { req async throws -> String in
