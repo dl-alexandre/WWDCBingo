@@ -10,6 +10,7 @@ struct WebView {
             .script(.src("https://unpkg.com/htmx.org@1.9.12")),
             .script(.src("https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js")),
             .script(.src("https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js")),
+            .script(.src("https://unpkg.com/htmx.org@1.9.12/dist/ext/loading-states.js")),
         ], body: { bodyContent })
         .render()
     }
@@ -52,13 +53,13 @@ struct WebView {
                         Text("Every year Apple releases new veresions of its operating systems: iOS for iPhone, iPad OS for iPad, macOS for Macs, watchOS for Apple Watch, and visionOS for Apple Vision Pro.")
                     }
                     Paragraph {
-                        Text("WWDC Bingo lets us play along with their show. We put rumors, hopes, dreams, and fears into game tiles. If they happen then the tile gets marked. Connect five in a row, column, or diagonal and you win<sup>*</sup>!")
+                        Text("WWDC Bingo lets us play along with their show. We put rumors, hopes, dreams, and fears into game tiles. If they happen then the tile gets marked. Connect five in a row, column, or diagonal and you win*!")
                     }
                     Paragraph {
-                        Text("<sup>*</sup>fake internet points")
+                        Node.small("* fake internet points")
                     }
                 }
-                .id("bingo")
+                .id("bingo-loading")
                 .attribute(named: "hx-swap", value: "outerHTML")
                 .attribute(named: "hx-get", value: "/games/view/random")
                 .attribute(named: "hx-trigger", value: "load")

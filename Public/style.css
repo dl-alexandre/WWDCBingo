@@ -65,6 +65,10 @@ button:focus-visible {
   }
 }
 
+div#main {
+    padding: 0 2vw;
+}
+
 .game {
     font-size: 2.0rem;
     font-weight: bold;
@@ -125,4 +129,15 @@ footer {
 .hidden {
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
+}
+
+@keyframes loading {
+    0% { opacity: 0; }
+    20% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+div#bingo-loading {
+    animation-name: loading;
+    animation-duration: 2s;
 }
