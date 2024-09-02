@@ -70,7 +70,7 @@ div#main {
 }
 
 .game {
-    font-size: 2.0rem;
+    font-size: 1.5rem;
     font-weight: bold;
     display: grid;
     grid-template-columns: repeat(5, 1fr);

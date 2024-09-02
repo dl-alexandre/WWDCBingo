@@ -15,16 +15,5 @@ actor WebSocketClients {
     func remove(id: connectionID) {
         clients[id] = nil
     }
-    
-    func sendToAll(bytes: ByteBuffer) {
-        for client in clients {
-            client.value.send(bytes)
-        }
-    }
-    
-    func sendToAll(text: String) {
-        for client in clients {
-            client.value.send(text)
-        }
-    }
+    // ...
 }

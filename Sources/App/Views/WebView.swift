@@ -15,7 +15,9 @@ struct WebView {
         .render()
     }
     
-    static func body(_ content: Component? = nil, user: User?, isAdmin: Bool = false ) -> Component {
+    static func body(_ content: Component? = nil, 
+                     user: User?,
+                     isAdmin: Bool = false ) -> Component {
         Div {
             if let content {
                 content
@@ -45,9 +47,6 @@ struct WebView {
                     Text("You’ll need JavaScript enabled to play")
                     H3 {
                         Text("WWDC Bingo 2024 Game Time!")
-                    }
-                    H4 {
-                        Text("Come back June 10")
                     }
                     Paragraph {
                         Text("Every year Apple releases new veresions of its operating systems: iOS for iPhone, iPad OS for iPad, macOS for Macs, watchOS for Apple Watch, and visionOS for Apple Vision Pro.")
@@ -81,7 +80,8 @@ struct WebView {
 
 // MARK: Vapor specific
 extension WebView {
-    static func response(for bodyContent: Component, user: User? = nil) -> Response {
-        return Response(status: .ok, body: .init(stringLiteral: Self.renderPage(bodyContent)))
+    static func response(for bodyContent: Component) -> Response {
+        return Response(status: .ok, 
+                        body: .init(stringLiteral: Self.renderPage(bodyContent)))
     }
 }
