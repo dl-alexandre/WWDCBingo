@@ -28,6 +28,9 @@ func routes(_ app: Application) throws {
     }
     
     app.get { req async throws in
+        if req.url.scheme == "webcal" {
+            print("IS WEBCAL")
+        }
         let user = try? req.auth.require(User.self)
         var isAdmin = false
         if let user {

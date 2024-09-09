@@ -10,8 +10,14 @@ struct GameView: Component {
             }
         }
         .class("game")
-        .id("bingo-" + (game.id?.uuidString ?? String(game.tiles.hashValue)))
+        .id("bingo-" + gameID())
         .attribute(named: "hx-ext", value: "ws")
-        .attribute(named: "ws-connect", value: "/games/\(game.id!.uuidString)/play")
+        .attribute(named: "ws-connect", value: "/games/\(gameID())/play")
+    }
+}
+
+extension GameView {
+    func gameID() -> String {
+        game.id?.uuidString ?? String(game.tiles.hashValue)
     }
 }

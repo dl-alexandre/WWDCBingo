@@ -17,7 +17,6 @@ struct GameController: RouteCollection {
         
         games.group(":gameID") { game in
             game.get(use: { try await self.get(req: $0) })
-            game.delete(use: { try await self.delete(req: $0) })
             
             let frameSize = 15 * 1024 // 15KiB
             game.webSocket("play", maxFrameSize: WebSocketMaxFrameSize(integerLiteral: frameSize)) { req, ws in
@@ -33,6 +32,12 @@ struct GameController: RouteCollection {
                 }
             }
         }
+        
+        let gamesProtected = games.grouped(User.sessionAuthenticator(), User.redirectMiddleware(path: "/"))
+        gamesProtected.get("admin") { try await self.getAdmin(req: $0) }
+        gamesProtected.delete(":gameID", use: {
+            try await self.delete(req: $0)
+        })
     }
     
     func gameView(req: Request) async throws -> String {
@@ -106,5 +111,20 @@ struct GameController: RouteCollection {
         try await bingoGame.$tiles.detachAll(on: req.db)
         try await bingoGame.delete(on: req.db)
         return .ok
+    }
+}
+
+
+// MARK: - Admin
+extension GameController {
+    func getAdmin(req: Request) async throws -> Response {
+        let user = try req.auth.require(User.self)
+        guard try await user.isAdmin(db: req.db) else {
+            throw Abort(.unauthorized)
+        }
+        let allGames = try await BingoGameState.query(on: req.db).all()
+        let adminGameView = AdminGameView(games: allGames)
+        let webView = WebView.body(adminGameView, user: user)
+        return WebView.response(for: webView)
     }
 }

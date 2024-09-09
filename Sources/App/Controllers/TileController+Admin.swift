@@ -19,6 +19,11 @@ extension TileController {
         guard let tileID = try? tile.requireID() else {
             throw Abort(.badRequest)
         }
+        let goodMorning: Tile? = try await Tile.query(on: req.db)
+            .filter(\Tile.$title, .equal, "Good Morning!").first()
+        guard try goodMorning?.requireID() != tileID else {
+            throw Abort(.badRequest, reason: "The central “Good Morning!” tile.")
+        }
         return WebView.response(for: EditTileRow(tile: tile, tileID: tileID.uuidString))
     }
 
