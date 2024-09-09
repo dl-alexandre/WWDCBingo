@@ -7,6 +7,7 @@ struct WebView {
             .meta(.charset(.utf8)),
             .title("WWDC Bingo 2024!"),
             .link(.href("/style.css"), .rel(.stylesheet)),
+            .meta(.attribute(named: "viewport", value: "width=device-width, initial-scale=1.0")),
             .script(.src("https://unpkg.com/htmx.org@1.9.12")),
             .script(.src("https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js")),
             .script(.src("https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js")),
