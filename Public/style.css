@@ -18,9 +18,6 @@ html {
     font-size: 22px;
     line-height: 26px;
 }
-body {
-    margin: 0;
-}
 
 a {
     color: var(--color-tile-text);
@@ -51,11 +48,6 @@ header {
 
 footer {
     height: 2vh;
-    text-align: center;
-}
-
-#customize {
-    font-size: 12px;
 }
 
 div.game {
@@ -177,28 +169,16 @@ div.tile {
 
 @media (max-width: 1000px) {
     body {
-        font-size: 12px;
-        /* Adjust as needed */
+        font-size: 18px;
     }
 
     h1 {
-        font-size: 18px;
-        /* Adjust as needed */
-    }
-
-    h2 {
-        font-size: 20px;
-        /* Adjust as needed */
-    }
-
-    p {
-        font-size: 16px;
-        /* Adjust as needed */
+        font-size: 64px;
     }
 
     div.tile {
-        font-size: 14px;
-        /* Adjust as needed */
+        font-size: 38px;
+        line-height: 120%;
     }
 }
 
