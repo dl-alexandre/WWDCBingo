@@ -22,17 +22,16 @@ struct TileController: RouteCollection {
         tilesProtected.group(":tileID") { tile in
             tile.put(use: { try await self.update(req: $0 )})
             tile.put("view") { try await self.updateView(req: $0) }
-            tile.delete(use: { try await self.delete(req: $0) })
         }
         
-        // TODO: Make a login view
         let tilesSessionProtected = tiles.grouped(User.sessionAuthenticator(), User.redirectMiddleware(path: "/"))
+        tilesSessionProtected.post(use: { try await self.createAdmin(req: $0) })
         tilesSessionProtected.get("admin") { try await self.adminView(req: $0) }
         tilesSessionProtected.get("view") { try await self.adminView(req: $0) }
-        tilesSessionProtected.group(":tileID") { adminTileView in
-            adminTileView.put("view") { try await self.updateView(req: $0) }
+        tilesSessionProtected.group(":tileID") { adminTileID in
+            adminTileID.put("view") { try await self.updateView(req: $0) }
+            adminTileID.delete(use: { try await self.delete(req: $0) })
         }
-
     }
     
     // MARK: CRUD
@@ -46,6 +45,12 @@ struct TileController: RouteCollection {
         let tile = try await tilePublic.makeTile(on: req)
         try await tile.save(on: req.db)
         return tile
+    }
+    
+    func createAdmin(req: Request) async throws -> String {
+        _ = try await create(req: req)
+        let tiles = try await index(req: req)
+        return ListTileView(tiles: tiles).render()
     }
     
     func adminChangePermissions(req: Request) async throws -> HTTPStatus {
@@ -143,13 +148,13 @@ struct TileController: RouteCollection {
         }
     }
 
-    func delete(req: Request) async throws -> HTTPStatus {
+    func delete(req: Request) async throws -> String {
         guard let tile = try await Tile.find(req.parameters.get("tileID"), on: req.db) else {
             throw Abort(.notFound)
         }
-
+        try await tile.$bingoGames.detachAll(on: req.db)
         try await tile.delete(on: req.db)
-        return .noContent
+        return ""
     }
     
     func search(req: Request) async throws -> Page<Tile> {

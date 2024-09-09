@@ -1,143 +1,253 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+    --color-background: #0c011c;
+    --color-tile: #000ea432;
+    --color-tile-played: #ff6af5;
+    --color-text: #86cdff;
+    --color-tile-text: #bee4ff;
+    --color-tile-text-played: var(--color-background);
+    --fonts-system: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, "Helvetica Neue", Arial, sans-serif;
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+html {
+    margin: 0;
+    padding: 0;
+    color: var(--color-text);
+    background-color: var(--color-background);
+    font-family: var(--fonts-system);
+    font-size: 22px;
+    line-height: 26px;
+}
+body {
+    margin: 0;
 }
 
 a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-  text-align: center;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+    color: var(--color-tile-text);
+    text-decoration: none;
 }
 
 div#main {
-    padding: 0 2vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    box-sizing: border-box;
 }
 
-.game {
-    font-size: 1.5rem;
-    font-weight: bold;
+header {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    text-align: center;
+    height: 4vh;
+    .glow {
+        color: #fff;
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #ff00de, 0 0 70px #ff00de, 0 0 80px #ff00de, 0 0 100px #ff00de, 0 0 150px #ff00de;
+    }
+}
+
+footer {
+    height: 2vh;
+    text-align: center;
+}
+
+#customize {
+    font-size: 12px;
+}
+
+div.game {
+    font-weight: 700;
+    height: 80vh;
+    max-height: 80%;
+    transform: scale(0.8);
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(5, 1fr);
-    margin: 0 2vw;
-    column-gap: 2vw;
-    row-gap: 2vw;
-    align-content: center;
+    gap: 4vw;
+}
+
+div.tile {
+    background-color: var(--color-tile);
+    display: flex;
     justify-content: center;
-    .tile {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        text-align: center;
-        align-content: center;
-        justify-content: center;
-        align-self: center;
-        height: 10vh;
-        background-color: peru;
-        align-content: center;
-        border-radius: 1vw;
-        padding: 1vw;
-        &.played {
-            color: #fff;
-            background-color: rgba(32, 200, 128, 0.8);
-            background:
-                radial-gradient(ellipse at bottom, rgba(32, 255, 170, 0.75), rgb(16, 100, 64));
-            box-shadow:
-                0 0 40px rgba(32, 200, 128, 0.3),
-                inset 0 2px 0 rgba(64, 255, 128, 0.8)
-            ;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    border-radius: 1rem;
+    mix-blend-mode: screen;
+    backdrop-filter: blur(0.1rem) saturate(150%);
+    box-shadow: 0.2rem 0.2rem 1.5rem 0.05rem rgb(255, 0, 208);
+    transition: all 0.1s;
+
+    &::after {
+        content: "";
+        display: block;
+        position: absolute;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        border: 1px solid rgba(255, 179, 255, 0.5);
+        padding: 0.1em;
+        transform: translate(0.2rem, -0.1rem);
+        border-radius: 1rem;
+        mix-blend-mode: screen;
+    }
+
+    &:nth-child(2n)::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        border: 2px solid rgba(0, 225, 255, 0.5);
+        transform: translate(-0.1rem, 0.1rem) rotate(2deg);
+        filter: blur(0.05rem);
+        border-radius: 1rem;
+        mix-blend-mode: screen;
+    }
+
+    &:nth-child(3n)::after {
+        content: "";
+        position: absolute;
+        z-index: -2;
+        width: 100%;
+        height: 100%;
+        border: 2px solid rgb(233, 144, 255);
+        transform: translate(0.2rem, 0.2rem) rotate(-2deg);
+        border-radius: 1rem;
+        filter: blur(0.05rem);
+        mix-blend-mode: screen;
+    }
+
+    &.played {
+        color: var(--color-tile-text-played);
+        background-color: var(--color-tile-played);
+
+        &::after {
+            content: "";
+            display: block;
+            position: absolute;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgb(255, 179, 255);
+            padding: 0.1em;
+            transform: translate(0.2rem, -0.1rem);
+            mix-blend-mode: screen;
         }
-        &.unplayed {
-            color: rgb(100, 100, 100);
-            background-color: rgba(64, 64, 64, 0.2);
-            box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.3);
+
+        &:nth-child(1n)::after {
+            content: "";
+            position: absolute;
+            z-index: 3;
+            width: 100%;
+            height: 100%;
+            transform: translate(-0.2rem, 0.2rem) rotate(3deg);
+            filter: blur(0.1rem);
+            mix-blend-mode: screen;
+            box-shadow: -0.2rem 0.1rem 0.7rem 0.3rem rgb(255, 119, 0);
+        }
+
+        &:nth-child(2n)::after {
+            content: "";
+            position: absolute;
+            z-index: 3;
+            width: 100%;
+            height: 100%;
+            transform: translate(-0.2rem, 0.2rem) rotate(3deg);
+            filter: blur(0.2rem);
+            mix-blend-mode: screen;
+            box-shadow: 0.2rem 0.2rem 0.3rem 0.05rem rgb(255, 0, 208);
+        }
+
+        &:nth-child(3n)::after {
+            content: "";
+            position: absolute;
+            z-index: 3;
+            transform: translate(-0.2rem, 0.2rem) rotate(-3deg);
+            filter: blur(0.1rem);
+            mix-blend-mode: screen;
+            box-shadow: -0.2rem -0.2rem 0.7rem 0.2rem rgb(0, 123, 255);
         }
     }
 }
 
-a {
-    color: #aef;
+@media (max-width: 1000px) {
+    body {
+        font-size: 12px;
+        /* Adjust as needed */
+    }
+
+    h1 {
+        font-size: 18px;
+        /* Adjust as needed */
+    }
+
+    h2 {
+        font-size: 20px;
+        /* Adjust as needed */
+    }
+
+    p {
+        font-size: 16px;
+        /* Adjust as needed */
+    }
+
+    div.tile {
+        font-size: 14px;
+        /* Adjust as needed */
+    }
 }
 
-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0.5rem;
+@keyframes oscillate {
+    0% {
+        transform: translate(0.2rem, -0.1rem) rotate(-10deg);
+    }
+    50% {
+        transform: translate(-0.2rem, 0.2rem) rotate(10deg);
+    }
+    100% {
+        transform: translate(0.2rem, -0.1rem) rotate(-10deg);
+    }
 }
 
-#login {
-    transition: opacity 0.2s ease-in-out;
+@keyframes sway {
+    0% {
+        transform: scale(1.1) rotate(-3deg);
+    }
+    50% {
+        transform: scale(0.9) rotate(3deg);
+    }
+    100% {
+        transform: scale(1.1) rotate(-3deg);
+    }
 }
 
-.hidden {
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+
+.tile.played {
+    &:nth-child(1n) {
+        animation: sway 11s infinite;
+    }
+    &:nth-child(2n) {
+        animation: sway 7s infinite;
+    }
+    &:nth-child(3n) {
+        animation: sway 15s infinite;
+    }
 }
 
-@keyframes loading {
-    0% { opacity: 0; }
-    20% { opacity: 0; }
-    100% { opacity: 1; }
+.tile.played::after,
+.tile.played:nth-child(1n)::after {
+    animation: oscillate 17s infinite;
 }
 
-div#bingo-loading {
-    animation-name: loading;
-    animation-duration: 2s;
+.tile.played:nth-child(2n)::after {
+    animation: oscillate 15s infinite;
+}
+
+.tile.played:nth-child(3n)::after {
+    animation: oscillate 18s infinite;
 }

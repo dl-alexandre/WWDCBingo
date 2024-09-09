@@ -8,7 +8,7 @@ struct CustomizeController: RouteCollection {
         customize.post { try await self.handleCustomize(req: $0) }
         customize.post("cancel") { _ in 
             return Button {
-                Text("Customize")
+                Text("Admin")
             }
             .id("btn-customize")
             .attribute(named: "hx-post", value: "/customize")

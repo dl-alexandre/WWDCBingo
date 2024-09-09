@@ -24,29 +24,15 @@ struct WebView {
             } else {
                 Header {
                     H1 {
-                        Text("WWDC Bingo 2024!")
+                        Text("WWDC Bingo ")
+                        Span("It’s Glowtime!")
+                            .class("glow")
                     }
-                    Div {
-                        if let user {
-                            LogoutView(userName: user.email, isAdmin: isAdmin)
-                            Link(url: "/tiles/view") {
-                                Text("Tiles")
-                            }
-                        } else {
-                                Button {
-                                    Text("Customize")
-                                }
-                                .id("btn-customize")
-                                .attribute(named: "hx-post", value: "/customize")
-                                .attribute(named: "hx-target", value: "#customize")
-                        }
-                    }
-                    .id("customize")
                 }
                 Div {
                     Text("You’ll need JavaScript enabled to play")
                     H3 {
-                        Text("WWDC Bingo 2024 Game Time!")
+                        Text("WWDC Bingo!")
                     }
                     Paragraph {
                         Text("Every year Apple releases new veresions of its operating systems: iOS for iPhone, iPad OS for iPad, macOS for Macs, watchOS for Apple Watch, and visionOS for Apple Vision Pro.")
@@ -67,6 +53,22 @@ struct WebView {
                         Text("By ")
                         Link("Michael Critz", url: "https://michaelcritz.com")
                     }
+                    Div {
+                        if let user {
+                            LogoutView(userName: user.email, isAdmin: isAdmin)
+                            Link(url: "/tiles/view") {
+                                Text("Tiles")
+                            }
+                        } else {
+                                Button {
+                                    Text("Admin")
+                                }
+                                .id("btn-customize")
+                                .attribute(named: "hx-post", value: "/customize")
+                                .attribute(named: "hx-target", value: "#customize")
+                        }
+                    }
+                    .id("customize")
                 }
             }
         }

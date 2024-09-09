@@ -15,5 +15,4 @@ actor WebSocketClients {
     func remove(id: connectionID) {
         clients[id] = nil
     }
-    // ...
 }
